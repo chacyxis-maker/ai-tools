@@ -136,35 +136,41 @@ const result = document.getElementById("result");
 result.innerHTML = "Generating...";
 
 try {
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      prompt: prompt
+    })
+  });
 
-const res = await fetch("/api/generate", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    prompt: prompt
-  })
-});
+  const data = await res.json();
 
-const data = await res.json();
-result.innerHTML = "";
+  if (!data.data) {
+    result.innerHTML = "API error";
+    console.log(data);
+    return;
+  }
 
-data.data.forEach(img => {
-const image = document.createElement("img");
-image.src = "data:image/png;base64," + img.b64_json;
-image.className = "rounded-xl";
+  result.innerHTML = "";
 
-const link = document.createElement("a");
-link.href = image.src;
-link.download = "ai-image.png";
-link.appendChild(image);
+  data.data.forEach(img => {
+    const image = document.createElement("img");
+    image.src = "data:image/png;base64," + img.b64_json;
+    image.className = "rounded-xl";
 
-result.appendChild(link);
-});
+    const link = document.createElement("a");
+    link.href = image.src;
+    link.download = "ai-image.png";
+    link.appendChild(image);
+
+    result.appendChild(link);
+  });
 
 } catch (err) {
-result.innerHTML = "Error generating image";
+  result.innerHTML = "Error generating image";
 }
 
 }
