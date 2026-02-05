@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Realistic Image Generator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+    background: #020617;
+    color: white;
+    font-family: system-ui, sans-serif;
+}
+.card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+}
+select {
+    background: #020617;
+    border: 1px solid #334155;
+}
+</style>
+</head>
+<body class="p-4">
+
+<div class="max-w-4xl mx-auto space-y-4">
+
+<h1 class="text-2xl font-bold">AI Realistic Image Generator</h1>
+
+<div class="card p-4 rounded-xl grid md:grid-cols-2 gap-4">
+
+<div>
+<label>Subjek</label>
+<select id="subject" class="w-full p-2 rounded">
+<option>Produk sahaja</option>
+<option>Lelaki melayu (solo)</option>
+<option>Perempuan melayu (solo)</option>
+<option>Keluarga</option>
+<option>Pasangan</option>
+</select>
+</div>
+
+<div>
+<label>Bilangan Imej</label>
+<select id="count" class="w-full p-2 rounded">
+<option>1</option>
+<option>2</option>
+<option>4</option>
+<option>8</option>
+<option>16</option>
+</select>
+</div>
+
+</div>
+
+<button onclick="generateImages()" 
+class="w-full bg-blue-600 p-3 rounded-xl font-semibold">
+Generate Imej
+</button>
+
+<div id="output" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+</div>
+
+<script>
+function buildPrompt() {
+    let subject = document.getElementById("subject").value;
+
+    return `
+Ultra realistic photo of ${subject},
+Malay appearance if human subject,
+natural skin texture,
+realistic lighting,
+DSLR quality,
+no cartoon,
+no AI look.
+`;
+}
+
+async function generateImages() {
+    let count = parseInt(document.getElementById("count").value);
+    let output = document.getElementById("output");
+    output.innerHTML = "";
+
+    let prompt = buildPrompt();
+
+    for (let i = 0; i < count; i++) {
+        let img = document.createElement("img");
+        img.src = "https://placehold.co/512x512?text=Generating...";
+        img.className = "rounded-xl";
+        output.appendChild(img);
+
+        let res = await fetch("/api/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+        });
+
+        let data = await res.json();
+        let b64 = data.data[0].b64_json;
+        img.src = "data:image/png;base64," + b64;
+
+        img.onclick = () => {
+            let a = document.createElement("a");
+            a.href = img.src;
+            a.download = "ai-image.png";
+            a.click();
+        };
+    }
+}
+</script>
+
+</body>
+</html>
